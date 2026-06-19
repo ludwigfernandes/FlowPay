@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.ludwig.flowpay.ui.home.HomeScreen
 import com.ludwig.flowpay.ui.home.RevolutViewModel
 import com.ludwig.flowpay.di.RevolutViewModelFactory
+import com.ludwig.flowpay.ui.coins.CoinViewModel
+import com.ludwig.flowpay.di.CoinViewModelFactory
+import com.ludwig.flowpay.ui.coins.CoinScreen
 import com.ludwig.flowpay.ui.theme.FlowPayTheme
 import com.revolut.cardpayments.api.CardPaymentLauncher
 
@@ -26,6 +28,11 @@ class MainActivity : ComponentActivity() {
     }
     private val revolutViewModel by viewModels<RevolutViewModel> { revolutViewModelFactory }
 
+    private val coinViewModelFactory by lazy {
+        CoinViewModelFactory(appDependencies.coinRepository)
+    }
+    private val coinViewModel by viewModels<CoinViewModel> { coinViewModelFactory }
+
     private val revCardPaymentLauncher = CardPaymentLauncher(this) { result ->
         revolutViewModel.onPaymentResult(result)
     }
@@ -37,11 +44,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             FlowPayTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(
+                    CoinScreen(
                         modifier = Modifier.padding(innerPadding),
-                        revolutViewModel = revolutViewModel,
-                        revCardPaymentLauncher = revCardPaymentLauncher
+                        coinViewModel = coinViewModel
                     )
+//                    HomeScreen(
+//                        modifier = Modifier.padding(innerPadding),
+//                        revolutViewModel = revolutViewModel,
+//                        revCardPaymentLauncher = revCardPaymentLauncher
+//                    )
                 }
             }
         }

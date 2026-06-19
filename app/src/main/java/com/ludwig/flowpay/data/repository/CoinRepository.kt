@@ -2,20 +2,19 @@ package com.ludwig.flowpay.data.repository
 
 import com.ludwig.flowpay.TAG
 import com.ludwig.flowpay.data.model.CoinListResponse
-import com.ludwig.flowpay.data.model.OrderDetailsRequest
-import com.ludwig.flowpay.data.model.OrderDetailsResponse
-import com.ludwig.flowpay.data.remote.CustomWorkerApiService
+import com.ludwig.flowpay.data.remote.CoinGeckoApiService
 import com.ludwig.flowpay.utils.CustomLogger.logDebugLogs
 import com.ludwig.flowpay.utils.ErrorHandling.unwrapError
 import com.ludwig.flowpay.utils.NetworkResult
+import okhttp3.ResponseBody
 
-class RevolutRepository(
-    private val customWorkerApiService: CustomWorkerApiService
+class CoinRepository(
+    private val coinGeckoApiService: CoinGeckoApiService
 ) {
 
-    suspend fun createOrder(orderDetailsRequest: OrderDetailsRequest): NetworkResult<OrderDetailsResponse>  {
+    suspend fun getCoinList(): NetworkResult<CoinListResponse> {
         return try {
-            val response = customWorkerApiService.createOrder(orderDetailsRequest)
+            val response = coinGeckoApiService.getCoinList()
             if (response.isSuccessful) {
                 val resBody = response.body()
                 resBody?.let { body ->
@@ -24,7 +23,7 @@ class RevolutRepository(
                     NetworkResult.Error("Empty response from server")
                 }
             } else {
-                val errorMessage = unwrapError("createOrder()", response.errorBody())
+                val errorMessage = unwrapError("getCoinList()", response.errorBody())
                 NetworkResult.Error(errorMessage)
             }
         } catch (e: Exception) {

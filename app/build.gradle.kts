@@ -27,10 +27,14 @@ android {
         debug {
             buildConfigField("String", "REVOLUT_PUBLIC_KEY", "\"${project.findProperty("REVOLUT_PUBLIC_KEY") ?: ""}\"")
             buildConfigField("String", "CUSTOM_WORKER_BASE_URL", "\"${project.findProperty("CUSTOM_WORKER_BASE_URL") ?: ""}\"")
+            buildConfigField("String", "COIN_BASE_URL", "\"${project.findProperty("COIN_BASE_URL") ?: ""}\"")
+            buildConfigField("String", "COIN_API_KEY", "\"${project.findProperty("COIN_API_KEY") ?: ""}\"")
         }
         release {
             buildConfigField("String", "REVOLUT_PUBLIC_KEY", "\"${project.findProperty("REVOLUT_PUBLIC_KEY") ?: ""}\"")
             buildConfigField("String", "CUSTOM_WORKER_BASE_URL", "\"${project.findProperty("CUSTOM_WORKER_BASE_URL") ?: ""}\"")
+            buildConfigField("String", "COIN_BASE_URL", "\"${project.findProperty("COIN_BASE_URL") ?: ""}\"")
+            buildConfigField("String", "COIN_API_KEY", "\"${project.findProperty("COIN_API_KEY") ?: ""}\"")
 
             isMinifyEnabled = false
             proguardFiles(
@@ -82,6 +86,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
+    // Coil - Image
+    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
 
     // Testing
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
