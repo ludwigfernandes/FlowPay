@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,23 +19,33 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.ludwig.flowpay.TAG
+import com.ludwig.flowpay.data.model.CartItem
+import com.ludwig.flowpay.data.model.CoinData
 import com.ludwig.flowpay.data.model.CoinListResponse
 import com.ludwig.flowpay.ui.loading.LoadingScreen
+import com.ludwig.flowpay.utils.CustomLogger.logDebugLogs
 import com.ludwig.flowpay.utils.NetworkResult
 
 @Composable
@@ -43,6 +54,7 @@ fun CoinScreen(
 ) {
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
 
     val coinListState by coinViewModel.coinList.collectAsStateWithLifecycle()
@@ -61,6 +73,10 @@ fun CoinScreen(
     }
 
 
+    var showCoinDataSheet by remember { mutableStateOf(false) }
+    var selectedCoin by remember { mutableStateOf<CoinData?>(null) }
+    val cartItems = remember { mutableStateListOf<CartItem>() }
+
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -77,41 +93,41 @@ fun CoinScreen(
             ) {
                 items(
                     items = coinListData ?: emptyList(), key = { it.id ?: it.hashCode() }) { coin ->
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 10.dp)
-                            .animateItem()
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            AsyncImage(
-                                model = coin.image,
-                                contentDescription = coin.name,
-                                modifier = Modifier.size(40.dp),
-                                contentScale = ContentScale.Fit
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            Column(
-                                verticalArrangement = Arrangement.Top
-                            ) {
-                                Text(
-                                    text = "${coin.name}",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
-                                )
-                                Spacer(Modifier.height(1.dp))
-                                Text(
-                                    text = "${coin.symbol}", fontSize = 12.sp, color = Color.Gray
-                                )
+                            .clickable {
+                                selectedCoin = coin
+                                showCoinDataSheet = true
                             }
-                            Spacer(Modifier.weight(1f))
+                            .animateItem(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AsyncImage(
+                            model = coin.image,
+                            contentDescription = coin.name,
+                            modifier = Modifier.size(40.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Column(
+                            verticalArrangement = Arrangement.Top
+                        ) {
                             Text(
-                                text = "${coin.currentPrice}", fontSize = 12.sp
+                                text = "${coin.name}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                            Spacer(Modifier.height(1.dp))
+                            Text(
+                                text = "${coin.symbol}", fontSize = 12.sp, color = Color.Gray
                             )
                         }
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = "${coin.currentPrice}", fontSize = 12.sp
+                        )
                     }
                 }
             }
@@ -125,5 +141,90 @@ fun CoinScreen(
         }
     }
 
+    if (showCoinDataSheet) {
+        selectedCoin?.let { coin ->
+            CoinDetailsSheet(
+                coinData = coin,
+                onDismiss = { showCoinDataSheet = false },
+                onAddToCartClicked = { coin, quantity ->
+                    val existing = cartItems.indexOfFirst { it.id == coin.id }
+                    if (existing != -1) {
+                        cartItems[existing] = cartItems[existing].copy(quantity = quantity)
+                    } else {
+                        if (!coin.id.isNullOrBlank() || coin.currentPrice != null) {
+                            cartItems.add(
+                                CartItem(
+                                    id = coin.id!!,
+                                    name = coin.name.orEmpty(),
+                                    symbol = coin.symbol.orEmpty(),
+                                    image = coin.image.orEmpty(),
+                                    currentPrice = coin.currentPrice!!,
+                                    quantity = quantity
+                                )
+                            )
+                        }
+                    }
+                    logDebugLogs(TAG, "CoinScreen()", "Items in cart ${cartItems.size}")
+                }
+            )
+        }
+    }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CoinDetailsSheet(
+    coinData: CoinData,
+    onDismiss: () -> Unit,
+    onAddToCartClicked: (CoinData, Double) -> Unit
+) {
+    ModalBottomSheet(
+        modifier = Modifier.fillMaxWidth(),
+        onDismissRequest = onDismiss,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = coinData.image,
+                    contentDescription = coinData.name,
+                    modifier = Modifier.size(40.dp),
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(Modifier.width(10.dp))
+                Column(
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    Text(
+                        text = "${coinData.name}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                    Spacer(Modifier.height(1.dp))
+                    Text(
+                        text = "${coinData.symbol}", fontSize = 12.sp, color = Color.Gray
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = "${coinData.currentPrice}",
+                    fontSize = 12.sp
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            Button(
+                onClick = { onAddToCartClicked(coinData, 80.2) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Add to cart")
+            }
+        }
+    }
 }
