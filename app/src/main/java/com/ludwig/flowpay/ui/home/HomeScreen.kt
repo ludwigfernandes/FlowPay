@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ludwig.flowpay.ui.loading.LoadingScreen
 import com.ludwig.flowpay.utils.NetworkResult
 import com.ludwig.flowpay.data.model.OrderDetailsResponse
+import com.ludwig.flowpay.ui.navigation.Screens
 import com.revolut.cardpayments.api.CardPaymentLauncher
 import com.revolut.cardpayments.api.CardPaymentParams
 import com.revolut.cardpayments.core.api.AddressParams
@@ -35,9 +36,9 @@ import com.revolut.cardpayments.core.api.AddressParams
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier,
     revolutViewModel: RevolutViewModel,
-    revCardPaymentLauncher: CardPaymentLauncher
+    revCardPaymentLauncher: CardPaymentLauncher,
+    navToScreen: (Screens) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -89,7 +90,7 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

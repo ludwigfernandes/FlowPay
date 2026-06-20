@@ -40,17 +40,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.ludwig.flowpay.TAG
 import com.ludwig.flowpay.data.model.CartItem
 import com.ludwig.flowpay.data.model.CoinData
 import com.ludwig.flowpay.data.model.CoinListResponse
 import com.ludwig.flowpay.ui.loading.LoadingScreen
-import com.ludwig.flowpay.utils.CustomLogger.logDebugLogs
+import com.ludwig.flowpay.ui.navigation.Screens
 import com.ludwig.flowpay.utils.NetworkResult
 
 @Composable
 fun CoinScreen(
-    modifier: Modifier, coinViewModel: CoinViewModel
+    coinViewModel: CoinViewModel,
+    navToScreen: (Screens) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -82,7 +82,7 @@ fun CoinScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -147,24 +147,10 @@ fun CoinScreen(
                 coinData = coin,
                 onDismiss = { showCoinDataSheet = false },
                 onAddToCartClicked = { coin, quantity ->
-                    val existing = cartItems.indexOfFirst { it.id == coin.id }
-                    if (existing != -1) {
-                        cartItems[existing] = cartItems[existing].copy(quantity = quantity)
-                    } else {
-                        if (!coin.id.isNullOrBlank() || coin.currentPrice != null) {
-                            cartItems.add(
-                                CartItem(
-                                    id = coin.id!!,
-                                    name = coin.name.orEmpty(),
-                                    symbol = coin.symbol.orEmpty(),
-                                    image = coin.image.orEmpty(),
-                                    currentPrice = coin.currentPrice!!,
-                                    quantity = quantity
-                                )
-                            )
-                        }
-                    }
-                    logDebugLogs(TAG, "CoinScreen()", "Items in cart ${cartItems.size}")
+                    coinViewModel.updateCart(
+                        coin = coin,
+                        quantity = quantity
+                    )
                 }
             )
         }

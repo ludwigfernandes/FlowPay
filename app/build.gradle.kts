@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     id("com.google.devtools.ksp")
+    id("org.jetbrains.kotlin.plugin.serialization")
+
 }
 
 android {
@@ -89,6 +91,12 @@ dependencies {
     // Coil - Image
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
+
+    // Nav3
+    implementation("androidx.navigation3:navigation3-runtime:1.0.0")
+    implementation("androidx.navigation3:navigation3-ui:1.0.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:2.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.9.0")
 
     // Testing
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
