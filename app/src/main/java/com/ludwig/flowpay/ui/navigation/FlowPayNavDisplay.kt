@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.ludwig.flowpay.ui.cart.CartScreen
+import com.ludwig.flowpay.ui.cart.CartViewModel
 import com.ludwig.flowpay.ui.coins.CoinScreen
 import com.ludwig.flowpay.ui.coins.CoinViewModel
 import com.ludwig.flowpay.ui.home.HomeScreen
@@ -18,6 +19,7 @@ fun FlowPayNavDisplay(
     backStack: SnapshotStateList<Any>,
     revolutViewModel: RevolutViewModel,
     coinViewModel: CoinViewModel,
+    cartViewModel: CartViewModel,
     revCardPaymentLauncher: CardPaymentLauncher
 ) {
     fun navToScreen(key: Screens) {
@@ -39,11 +41,13 @@ fun FlowPayNavDisplay(
             entry<Screens.CoinScreen> {
                 CoinScreen(
                     coinViewModel = coinViewModel,
+                    cartViewModel = cartViewModel,
                     navToScreen = ::navToScreen
                 )
             }
             entry<Screens.CartScreen> {
                 CartScreen(
+                    cartViewModel = cartViewModel,
                     navToScreen = ::navToScreen
                 )
             }

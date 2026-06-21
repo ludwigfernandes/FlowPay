@@ -15,6 +15,7 @@ import com.ludwig.flowpay.ui.home.RevolutViewModel
 import com.ludwig.flowpay.di.RevolutViewModelFactory
 import com.ludwig.flowpay.ui.coins.CoinViewModel
 import com.ludwig.flowpay.di.CoinViewModelFactory
+import com.ludwig.flowpay.ui.cart.CartViewModel
 import com.ludwig.flowpay.ui.navigation.BottomNavBar
 import com.ludwig.flowpay.ui.navigation.FlowPayNavDisplay
 import com.ludwig.flowpay.ui.navigation.Screens
@@ -39,6 +40,8 @@ class MainActivity : ComponentActivity() {
     }
     private val coinViewModel by viewModels<CoinViewModel> { coinViewModelFactory }
 
+    private val cartViewModel by viewModels<CartViewModel>()
+
 
 
     private val revCardPaymentLauncher = CardPaymentLauncher(this) { result ->
@@ -57,7 +60,7 @@ class MainActivity : ComponentActivity() {
                 val backStack = remember { mutableStateListOf<Any>(Screens.HomeScreen) }
                 fun showNavBar(key: Screens?): Boolean {
                     return when (key) {
-                        Screens.HomeScreen, Screens.CartScreen -> true
+                        Screens.HomeScreen, Screens.CoinScreen, Screens.CartScreen -> true
                         else -> false
 
                     }
@@ -85,6 +88,7 @@ class MainActivity : ComponentActivity() {
                         backStack = backStack,
                         revolutViewModel = revolutViewModel,
                         coinViewModel = coinViewModel,
+                        cartViewModel = cartViewModel,
                         revCardPaymentLauncher = revCardPaymentLauncher
                     )
                 }

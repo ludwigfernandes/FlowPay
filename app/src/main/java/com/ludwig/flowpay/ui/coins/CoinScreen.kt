@@ -43,6 +43,7 @@ import coil3.compose.AsyncImage
 import com.ludwig.flowpay.data.model.CartItem
 import com.ludwig.flowpay.data.model.CoinData
 import com.ludwig.flowpay.data.model.CoinListResponse
+import com.ludwig.flowpay.ui.cart.CartViewModel
 import com.ludwig.flowpay.ui.loading.LoadingScreen
 import com.ludwig.flowpay.ui.navigation.Screens
 import com.ludwig.flowpay.utils.NetworkResult
@@ -50,6 +51,7 @@ import com.ludwig.flowpay.utils.NetworkResult
 @Composable
 fun CoinScreen(
     coinViewModel: CoinViewModel,
+    cartViewModel: CartViewModel,
     navToScreen: (Screens) -> Unit
 ) {
 
@@ -147,7 +149,7 @@ fun CoinScreen(
                 coinData = coin,
                 onDismiss = { showCoinDataSheet = false },
                 onAddToCartClicked = { coin, quantity ->
-                    coinViewModel.updateCart(
+                    cartViewModel.updateCart(
                         coin = coin,
                         quantity = quantity
                     )
