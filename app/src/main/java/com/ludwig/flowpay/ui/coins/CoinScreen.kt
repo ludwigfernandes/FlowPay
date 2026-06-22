@@ -208,7 +208,10 @@ fun CoinDetailsSheet(
             }
             Spacer(Modifier.height(10.dp))
             Button(
-                onClick = { onAddToCartClicked(coinData, 80.2) },
+                onClick = {
+                    onAddToCartClicked(coinData, 80.2)
+                    onDismiss()
+                },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Add to cart")

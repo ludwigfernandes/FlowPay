@@ -3,6 +3,7 @@ package com.ludwig.flowpay.ui.cart
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +18,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,9 +51,7 @@ fun CartScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 14.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -55,38 +60,72 @@ fun CartScreen(
             ) {
                 items(
                     items = cartItemsData ?: emptyList(), key = { it.id }) { coin ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 10.dp)
-                            .clickable { }
-                            .animateItem(),
-                        verticalAlignment = Alignment.CenterVertically
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { value ->
+                            when (value) {
+                                SwipeToDismissBoxValue.EndToStart -> {
+                                    cartViewModel.removeCartItem(coin.id)
+                                    true
+                                }
+                                SwipeToDismissBoxValue.StartToEnd -> {
+                                    cartViewModel.removeCartItem(coin.id)
+                                    true
+                                }
+                                SwipeToDismissBoxValue.Settled -> false
+                            }
+                        }
+                    )
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Red.copy(0.4f)),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "delete",
+                                    tint = Color.Red
+                                )
+                            }
+                        }
                     ) {
-                        AsyncImage(
-                            model = coin.image,
-                            contentDescription = coin.name,
-                            modifier = Modifier.size(40.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Column(
-                            verticalArrangement = Arrangement.Top
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.White)
+                                .padding(bottom = 10.dp)
+                                .clickable { }
+                                .animateItem(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "${coin.name}",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
+                            AsyncImage(
+                                model = coin.image,
+                                contentDescription = coin.name,
+                                modifier = Modifier.size(40.dp),
+                                contentScale = ContentScale.Fit
                             )
-                            Spacer(Modifier.height(1.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Column(
+                                verticalArrangement = Arrangement.Top
+                            ) {
+                                Text(
+                                    text = "${coin.name}",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                                Spacer(Modifier.height(1.dp))
+                                Text(
+                                    text = "${coin.symbol}", fontSize = 12.sp, color = Color.Gray
+                                )
+                            }
+                            Spacer(Modifier.weight(1f))
                             Text(
-                                text = "${coin.symbol}", fontSize = 12.sp, color = Color.Gray
+                                text = "${coin.currentPrice}", fontSize = 12.sp
                             )
                         }
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            text = "${coin.currentPrice}", fontSize = 12.sp
-                        )
                     }
                 }
             }

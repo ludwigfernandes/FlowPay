@@ -19,7 +19,6 @@ class CartViewModel: ViewModel() {
     private val _cartItems = MutableStateFlow<List<CartItem>?>(emptyList())
     val cartItems = _cartItems.asStateFlow()
     fun updateCart(coin: CoinData, quantity: Double) {
-        viewModelScope.launch {
             var currentItems = _cartItems.value.orEmpty()
             val existing = currentItems.indexOfFirst { it.id == coin.id }
             if (existing != -1) {
@@ -40,7 +39,12 @@ class CartViewModel: ViewModel() {
             }
             _cartItems.value = currentItems
             logDebugLogs(TAG, "updateCart()", "Items in cart ${_cartItems.value?.size}")
-        }
+    }
+
+    fun removeCartItem(itemId: String) {
+        val updatedList = _cartItems.value.orEmpty().toMutableList()
+        updatedList.removeAll { it.id == itemId }
+        _cartItems.value = updatedList
     }
 
 }
