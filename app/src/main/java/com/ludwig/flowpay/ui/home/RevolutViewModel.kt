@@ -12,6 +12,7 @@ import com.ludwig.flowpay.utils.CustomLogger.logDebugLogs
 import com.revolut.cardpayments.api.CardPaymentResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RevolutViewModel(
@@ -34,7 +35,7 @@ class RevolutViewModel(
             is CardPaymentResult.Authorised -> {
                 logDebugLogs(TAG, "CardPaymentResult.Authorised", result.toString())
                 val outcome = PaymentFlowHelper.mapPaymentErrorToReasons(result.toString())
-                _paymentResult.value = NetworkResult.Success(outcome)
+                _paymentResult.value = NetworkResult.Success("Payment successful")
             }
 
             is CardPaymentResult.Declined -> {
@@ -58,25 +59,26 @@ class RevolutViewModel(
             is CardPaymentResult.UserAbandonedPayment -> {
                 logDebugLogs(TAG, "CardPaymentResult.UserAbandonedPayment", result.toString())
                 val error = PaymentFlowHelper.mapPaymentErrorToReasons(result.toString())
-                _paymentResult.value = NetworkResult.Error(error)
+                _paymentResult.value = NetworkResult.Error("Payment abandoned")
             }
         }
     }
 
 
-    private val _orderRequest = MutableStateFlow(
-        OrderDetailsRequest(
-            amount = 0.0,
-            currency = "GBP"
-        )
-    )
+    private val _orderRequest = MutableStateFlow<OrderDetailsRequest?>(OrderDetailsRequest(amount = 0.0, currency = "GBP"))
     val orderRequest = _orderRequest.asStateFlow()
     fun updateOrderRequest(amount: Double, currency: String) {
-        _orderRequest.value = _orderRequest.value.copy(
+        _orderRequest.value = _orderRequest.value?.copy(
             amount = amount,
             currency = currency
         )
     }
 
+
+    fun destroyRecords(){
+        _orderDetails.update { null }
+        _paymentResult.update { null }
+        _orderRequest.update { null }
+    }
 
 }

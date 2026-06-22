@@ -30,6 +30,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ludwig.flowpay.data.model.CoinData
+import com.ludwig.flowpay.data.model.OrderDetailsRequest
 import com.ludwig.flowpay.data.model.OrderDetailsResponse
 import com.ludwig.flowpay.ui.home.RevolutViewModel
 import com.ludwig.flowpay.ui.navigation.Screens
@@ -57,7 +59,6 @@ import com.ludwig.flowpay.utils.FieldFormating.toCleanString
 import com.ludwig.flowpay.utils.NetworkResult
 import com.revolut.cardpayments.api.CardPaymentLauncher
 import com.revolut.cardpayments.api.CardPaymentParams
-import com.revolut.cardpayments.core.api.AddressParams
 
 @Composable
 fun CartScreen(
@@ -68,6 +69,11 @@ fun CartScreen(
 ) {
     val context = LocalContext.current
 
+    DisposableEffect(Unit) {
+        onDispose {
+            revolutViewModel.destroyRecords()
+        }
+    }
     val orderDetailsState by revolutViewModel.orderDetails.collectAsStateWithLifecycle()
     val orderDetailsData = (orderDetailsState as? NetworkResult.Success<OrderDetailsResponse>)?.data
     val orderDetailsError = (orderDetailsState as? NetworkResult.Error)?.message
@@ -78,15 +84,8 @@ fun CartScreen(
             revCardPaymentLauncher.launch(
                 CardPaymentParams(
                     orderId = token,
-                    email = "itsludwigferns@gmail.com",
-                    billingAddress = AddressParams(
-                        streetLine1 = "1 Android Square",
-                        streetLine2 = "Kotlin street",
-                        city = "London",
-                        region = "Greater London",
-                        country = "GB",
-                        postcode = "54321"
-                    ),
+                    email = null,
+                    billingAddress = null,
                     shippingAddress = null,
                     savePaymentMethodFor = null
                 )
@@ -105,11 +104,8 @@ fun CartScreen(
         }
     }
 
-
-    val cartItemsState = cartViewModel.cartItems.collectAsStateWithLifecycle()
-    val cartItemsData = cartItemsState.value
-
-    val orderRequest = revolutViewModel.orderRequest.collectAsStateWithLifecycle().value
+    val cartItemsData = cartViewModel.cartItems.collectAsStateWithLifecycle().value
+    val orderRequestData = revolutViewModel.orderRequest.collectAsStateWithLifecycle().value
     val currencySymbol by remember { mutableStateOf("GBP") }
     val cartAmount by remember(cartItemsData) { mutableDoubleStateOf(cartItemsData.sumOf { it.quantity }) }
 
@@ -254,7 +250,12 @@ fun CartScreen(
                     amount = cartAmount,
                     currency = currencySymbol
                 )
-                revolutViewModel.createOrder(orderRequest)
+                revolutViewModel.createOrder(
+                    orderDetailsRequest = OrderDetailsRequest(
+                        amount = cartAmount,
+                        currency = currencySymbol
+                    )
+                )
             }
         ) {
             Text(
