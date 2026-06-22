@@ -30,6 +30,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ludwig.flowpay.data.model.CoinData
 import com.ludwig.flowpay.ui.navigation.Screens
+import com.ludwig.flowpay.utils.FieldFormating.toCleanString
 
 @Composable
 fun CartScreen(
@@ -85,6 +87,7 @@ fun CartScreen(
                         }
                     )
 
+                    var tfQuantity by rememberSaveable { mutableStateOf(coin.quantity.toCleanString()) }
                     var quantity by rememberSaveable { mutableDoubleStateOf(coin.quantity) }
 
                     SwipeToDismissBox(
@@ -141,20 +144,26 @@ fun CartScreen(
                             }
                             Spacer(Modifier.height(10.dp))
                             BasicTextField(
-                                value = quantity.toString(),
-                                onValueChange = { value ->
-                                    value.toDoubleOrNull()?.let {
-                                        quantity = it
-                                        cartViewModel.updateCart(
-                                            coin = CoinData(
-                                                id = coin.id,
-                                                name = coin.name,
-                                                image = coin.image,
-                                                symbol = coin.symbol,
-                                                currentPrice = coin.currentPrice
-                                            ),
-                                            quantity = it
-                                        )
+                                value = tfQuantity,
+                                onValueChange = { input ->
+                                    if (input.matches(Regex("""^\d*\.?\d*$"""))) {
+                                        tfQuantity = input
+
+                                        val parsed = input.toDoubleOrNull() ?: 0.0
+                                        val isIntermediate = input.isEmpty() || input.endsWith(".")
+                                        if (!isIntermediate && parsed != quantity) {
+                                            quantity = parsed
+                                            cartViewModel.updateCart(
+                                                coin = CoinData(
+                                                    id = coin.id,
+                                                    name = coin.name,
+                                                    image = coin.image,
+                                                    symbol = coin.symbol,
+                                                    currentPrice = coin.currentPrice
+                                                ),
+                                                quantity = parsed
+                                            )
+                                        }
                                     }
                                 },
                                 singleLine = true,

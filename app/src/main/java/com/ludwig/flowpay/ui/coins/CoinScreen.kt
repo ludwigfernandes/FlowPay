@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,7 @@ import com.ludwig.flowpay.data.model.CoinListResponse
 import com.ludwig.flowpay.ui.cart.CartViewModel
 import com.ludwig.flowpay.ui.loading.LoadingScreen
 import com.ludwig.flowpay.ui.navigation.Screens
+import com.ludwig.flowpay.utils.FieldFormating.toCleanString
 import com.ludwig.flowpay.utils.NetworkResult
 
 @Composable
@@ -185,6 +187,7 @@ fun CoinDetailsSheet(
     quantity: Double
 ) {
 
+    var tfQuantity by rememberSaveable { mutableStateOf(quantity.toCleanString()) }
     var quantity by remember(coinData.id) { mutableDoubleStateOf(quantity ) }
 
     ModalBottomSheet(
@@ -228,11 +231,17 @@ fun CoinDetailsSheet(
             }
             Spacer(Modifier.height(10.dp))
             BasicTextField(
-                value = quantity.toString(),
-                onValueChange = { value ->
-                    value.toDoubleOrNull()?.let {
-                        quantity = it
-                        updateCoin(coinData, it)
+                value = tfQuantity,
+                onValueChange = { input ->
+                    if (input.matches(Regex("""^\d*\.?\d*$"""))) {
+                        tfQuantity = input
+
+                        val parsed = input.toDoubleOrNull() ?: 0.0
+                        val isIntermediate = input.isEmpty() || input.endsWith(".")
+                        if (!isIntermediate && parsed != quantity) {
+                            quantity = parsed
+                            updateCoin(coinData, parsed)
+                        }
                     }
                 },
                 singleLine = true,
