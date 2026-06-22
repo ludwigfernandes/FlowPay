@@ -4,6 +4,6 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class OrderDetailsRequest(
-    val amount: Int,
+    val amount: Double,
     val currency: String
 )

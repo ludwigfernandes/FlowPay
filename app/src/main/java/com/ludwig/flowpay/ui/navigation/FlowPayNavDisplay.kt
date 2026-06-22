@@ -34,7 +34,6 @@ fun FlowPayNavDisplay(
             entry<Screens.HomeScreen> {
                 HomeScreen(
                     revolutViewModel = revolutViewModel,
-                    revCardPaymentLauncher = revCardPaymentLauncher,
                     navToScreen = ::navToScreen
                 )
             }
@@ -48,6 +47,8 @@ fun FlowPayNavDisplay(
             entry<Screens.CartScreen> {
                 CartScreen(
                     cartViewModel = cartViewModel,
+                    revolutViewModel = revolutViewModel,
+                    revCardPaymentLauncher = revCardPaymentLauncher,
                     navToScreen = ::navToScreen
                 )
             }

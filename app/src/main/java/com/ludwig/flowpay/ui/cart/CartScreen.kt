@@ -1,5 +1,6 @@
 package com.ludwig.flowpay.ui.cart
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -22,21 +23,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,17 +50,69 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ludwig.flowpay.data.model.CoinData
+import com.ludwig.flowpay.data.model.OrderDetailsResponse
+import com.ludwig.flowpay.ui.home.RevolutViewModel
 import com.ludwig.flowpay.ui.navigation.Screens
 import com.ludwig.flowpay.utils.FieldFormating.toCleanString
+import com.ludwig.flowpay.utils.NetworkResult
+import com.revolut.cardpayments.api.CardPaymentLauncher
+import com.revolut.cardpayments.api.CardPaymentParams
+import com.revolut.cardpayments.core.api.AddressParams
 
 @Composable
 fun CartScreen(
     cartViewModel: CartViewModel,
+    revolutViewModel: RevolutViewModel,
+    revCardPaymentLauncher: CardPaymentLauncher,
     navToScreen: (Screens) -> Unit
 ) {
+    val context = LocalContext.current
+
+    val orderDetailsState by revolutViewModel.orderDetails.collectAsStateWithLifecycle()
+    val orderDetailsData = (orderDetailsState as? NetworkResult.Success<OrderDetailsResponse>)?.data
+    val orderDetailsError = (orderDetailsState as? NetworkResult.Error)?.message
+    val orderDetailsLoading = orderDetailsState is NetworkResult.Loading
+    LaunchedEffect(orderDetailsData?.token) {
+        // TODO: clearn token after payment or if failed
+        orderDetailsData?.token?.let { token ->
+            revCardPaymentLauncher.launch(
+                CardPaymentParams(
+                    orderId = token,
+                    email = "itsludwigferns@gmail.com",
+                    billingAddress = AddressParams(
+                        streetLine1 = "1 Android Square",
+                        streetLine2 = "Kotlin street",
+                        city = "London",
+                        region = "Greater London",
+                        country = "GB",
+                        postcode = "54321"
+                    ),
+                    shippingAddress = null,
+                    savePaymentMethodFor = null
+                )
+            )
+        }
+    }
+
+    val paymentResultState by revolutViewModel.paymentResult.collectAsStateWithLifecycle()
+    val paymentResultData = (paymentResultState as? NetworkResult.Success<String>)?.data
+    val paymentResultError = (paymentResultState as? NetworkResult.Error)?.message
+    val paymentResultIsLoading = paymentResultState is NetworkResult.Loading
+    LaunchedEffect(orderDetailsError, paymentResultError, paymentResultData) {
+        val message = paymentResultData ?: paymentResultError ?: orderDetailsError
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     val cartItemsState = cartViewModel.cartItems.collectAsStateWithLifecycle()
     val cartItemsData = cartItemsState.value
+
+    val orderRequest = revolutViewModel.orderRequest.collectAsStateWithLifecycle().value
+    val currencySymbol by remember { mutableStateOf("GBP") }
+    val cartAmount by remember(cartItemsData) { mutableDoubleStateOf(cartItemsData.sumOf { it.quantity }) }
+
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -186,6 +243,27 @@ fun CartScreen(
                     }
                 }
             }
+        }
+        Button(
+            modifier = Modifier
+                .padding(10.dp)
+                .align(Alignment.BottomCenter),
+            enabled = cartItemsData.isNotEmpty(),
+            onClick = {
+                revolutViewModel.updateOrderRequest(
+                    amount = cartAmount,
+                    currency = currencySymbol
+                )
+                revolutViewModel.createOrder(orderRequest)
+            }
+        ) {
+            Text(
+                if (cartAmount > 0) {
+                    "Proceed To Pay ${cartAmount.toCleanString()} $currencySymbol"
+                } else {
+                    "Add something to your cart"
+                }
+            )
         }
         AnimatedVisibility(
             visible = cartItemsData.isEmpty(),

@@ -66,12 +66,12 @@ class RevolutViewModel(
 
     private val _orderRequest = MutableStateFlow(
         OrderDetailsRequest(
-            amount = 500,
+            amount = 0.0,
             currency = "GBP"
         )
     )
     val orderRequest = _orderRequest.asStateFlow()
-    fun updateOrderRequest(amount: Int, currency: String) {
+    fun updateOrderRequest(amount: Double, currency: String) {
         _orderRequest.value = _orderRequest.value.copy(
             amount = amount,
             currency = currency
