@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,8 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -25,7 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,12 +39,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.ludwig.flowpay.data.model.CartItem
 import com.ludwig.flowpay.data.model.CoinData
 import com.ludwig.flowpay.data.model.CoinListResponse
 import com.ludwig.flowpay.ui.cart.CartViewModel
@@ -64,6 +69,9 @@ fun CoinScreen(
     val coinListError = (coinListState as? NetworkResult.Error)?.message
     val coinListIsLoading = coinListState is NetworkResult.Loading
 
+    val cartItemsState = cartViewModel.cartItems.collectAsStateWithLifecycle()
+    val cartItemsData = cartItemsState.value
+
 
     LaunchedEffect(Unit) {
         coinViewModel.getCoinList()
@@ -77,16 +85,13 @@ fun CoinScreen(
 
     var showCoinDataSheet by remember { mutableStateOf(false) }
     var selectedCoin by remember { mutableStateOf<CoinData?>(null) }
-    val cartItems = remember { mutableStateListOf<CartItem>() }
 
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 14.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -94,15 +99,16 @@ fun CoinScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(
-                    items = coinListData ?: emptyList(), key = { it.id ?: it.hashCode() }) { coin ->
+                    items = coinListData ?: emptyList(), key = { it.id ?: it.hashCode() }
+                ) { coin ->
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 10.dp)
                             .clickable {
                                 selectedCoin = coin
                                 showCoinDataSheet = true
                             }
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 2.dp)
                             .animateItem(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -145,6 +151,8 @@ fun CoinScreen(
 
     if (showCoinDataSheet) {
         selectedCoin?.let { coin ->
+            val index = cartItemsData.indexOfFirst { it.id == coin.id }
+
             CoinDetailsSheet(
                 coinData = coin,
                 onDismiss = { showCoinDataSheet = false },
@@ -153,7 +161,14 @@ fun CoinScreen(
                         coin = coin,
                         quantity = quantity
                     )
-                }
+                },
+                updateCoin = { coinData, quantity ->
+                    cartViewModel.updateCart(
+                        coin = coinData,
+                        quantity = quantity
+                    )
+                },
+                quantity = if (index != -1) cartItemsData[index].quantity else coin.currentPrice ?: 0.0
             )
         }
     }
@@ -165,8 +180,13 @@ fun CoinScreen(
 fun CoinDetailsSheet(
     coinData: CoinData,
     onDismiss: () -> Unit,
-    onAddToCartClicked: (CoinData, Double) -> Unit
+    onAddToCartClicked: (CoinData, Double) -> Unit,
+    updateCoin: (CoinData, Double) -> Unit,
+    quantity: Double
 ) {
+
+    var quantity by remember(coinData.id) { mutableDoubleStateOf(quantity ) }
+
     ModalBottomSheet(
         modifier = Modifier.fillMaxWidth(),
         onDismissRequest = onDismiss,
@@ -207,9 +227,34 @@ fun CoinDetailsSheet(
                 )
             }
             Spacer(Modifier.height(10.dp))
+            BasicTextField(
+                value = quantity.toString(),
+                onValueChange = { value ->
+                    value.toDoubleOrNull()?.let {
+                        quantity = it
+                        updateCoin(coinData, it)
+                    }
+                },
+                singleLine = true,
+                textStyle = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.End,
+                    color = Color.Black
+                ),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .background(
+                        color = Color(0xFFF0F0F0),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .widthIn(min = 60.dp)
+            )
+            Spacer(Modifier.height(10.dp))
             Button(
                 onClick = {
-                    onAddToCartClicked(coinData, 80.2)
+                    onAddToCartClicked(coinData, quantity)
                     onDismiss()
                 },
                 modifier = Modifier.fillMaxWidth(),
