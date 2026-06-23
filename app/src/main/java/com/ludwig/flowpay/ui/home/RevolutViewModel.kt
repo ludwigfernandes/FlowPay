@@ -7,6 +7,7 @@ import com.ludwig.flowpay.data.model.OrderDetailsRequest
 import com.ludwig.flowpay.data.model.OrderDetailsResponse
 import com.ludwig.flowpay.utils.PaymentFlowHelper
 import com.ludwig.flowpay.TAG
+import com.ludwig.flowpay.data.model.OrderListResponse
 import com.ludwig.flowpay.data.repository.RevolutRepository
 import com.ludwig.flowpay.utils.CustomLogger.logDebugLogs
 import com.revolut.cardpayments.api.CardPaymentResult
@@ -79,6 +80,16 @@ class RevolutViewModel(
         _orderDetails.update { null }
         _paymentResult.update { null }
         _orderRequest.update { null }
+    }
+
+
+    private val _previousOrders = MutableStateFlow<NetworkResult<OrderListResponse>?>(null)
+    val previousOrders = _previousOrders.asStateFlow()
+    fun getPreviousOrders() {
+        viewModelScope.launch {
+            _previousOrders.value = NetworkResult.Loading
+            _previousOrders.value = revolutRepository.getPreviousOrders()
+        }
     }
 
 }
