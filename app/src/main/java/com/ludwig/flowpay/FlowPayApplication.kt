@@ -11,7 +11,7 @@ class FlowPayApplication: Application() {
     override fun onCreate() {
         super.onCreate()
 
-        appDependencies = AppDependencies()
+        appDependencies = AppDependencies(applicationContext)
 
 
         RevolutPaymentsSDK.configure(

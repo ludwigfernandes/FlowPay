@@ -28,9 +28,9 @@ fun FlowPayNavDisplay(
     }
 
     NavDisplay(
+        modifier = modifier,
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
-        modifier = modifier,
         entryProvider = entryProvider {
             entry<Screens.Home> {
                 HomeScreen(
