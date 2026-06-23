@@ -1,9 +1,6 @@
 package com.ludwig.flowpay.ui.cart
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,6 +57,7 @@ import coil3.compose.AsyncImage
 import com.ludwig.flowpay.data.model.CoinData
 import com.ludwig.flowpay.data.model.OrderDetailsRequest
 import com.ludwig.flowpay.data.model.OrderDetailsResponse
+import com.ludwig.flowpay.data.model.PaymentOutcome
 import com.ludwig.flowpay.ui.home.RevolutViewModel
 import com.ludwig.flowpay.ui.navigation.Screens
 import com.ludwig.flowpay.utils.FieldFormating.toCleanString
@@ -82,6 +80,8 @@ fun CartScreen(
             revolutViewModel.destroyRecords()
         }
     }
+
+
     val orderDetailsState by revolutViewModel.orderDetails.collectAsStateWithLifecycle()
     val orderDetailsData = (orderDetailsState as? NetworkResult.Success<OrderDetailsResponse>)?.data
     val orderDetailsError = (orderDetailsState as? NetworkResult.Error)?.message
@@ -99,17 +99,43 @@ fun CartScreen(
             )
         }
     }
+    LaunchedEffect(orderDetailsError) {
+        orderDetailsError?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     val paymentResultState by revolutViewModel.paymentResult.collectAsStateWithLifecycle()
     val paymentResultData = (paymentResultState as? NetworkResult.Success<String>)?.data
     val paymentResultError = (paymentResultState as? NetworkResult.Error)?.message
     val paymentResultIsLoading = paymentResultState is NetworkResult.Loading
-    LaunchedEffect(orderDetailsError, paymentResultError, paymentResultData) {
-        val message = paymentResultData ?: paymentResultError ?: orderDetailsError
-        message?.let {
+    LaunchedEffect(paymentResultError, paymentResultData) {
+        paymentResultError?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            navToScreen(
+                Screens.TransactionOutcome(
+                    paymentOutcome = PaymentOutcome(
+                        successMessage = null,
+                        failureMessage = it,
+                        isError = true
+                    )
+                )
+            )
+        }
+        paymentResultData?.let {
+            navToScreen(
+                Screens.TransactionOutcome(
+                    paymentOutcome = PaymentOutcome(
+                        successMessage = it,
+                        failureMessage = null,
+                        isError = false
+                    )
+                )
+            )
         }
     }
+
 
     val cartItemsData = cartViewModel.cartItems.collectAsStateWithLifecycle().value
     val orderRequestData = revolutViewModel.orderRequest.collectAsStateWithLifecycle().value
@@ -299,7 +325,9 @@ fun CartScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(18.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     CircularProgressIndicator(

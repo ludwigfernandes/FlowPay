@@ -20,6 +20,7 @@ import com.ludwig.flowpay.ui.navigation.BottomNavBar
 import com.ludwig.flowpay.ui.navigation.FlowPayNavDisplay
 import com.ludwig.flowpay.ui.navigation.Screens
 import com.ludwig.flowpay.ui.theme.FlowPayTheme
+import com.ludwig.flowpay.ui.transactionOutcome.TransactionOutcomeViewModel
 import com.revolut.cardpayments.api.CardPaymentLauncher
 
 const val TAG = "TAG"
@@ -41,6 +42,7 @@ class MainActivity : ComponentActivity() {
     private val coinViewModel by viewModels<CoinViewModel> { coinViewModelFactory }
 
     private val cartViewModel by viewModels<CartViewModel>()
+    private val transactionOutcomeViewModel by viewModels<TransactionOutcomeViewModel>()
 
 
 
@@ -57,10 +59,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             FlowPayTheme {
 
-                val backStack = remember { mutableStateListOf<Any>(Screens.HomeScreen) }
+                val backStack = remember { mutableStateListOf<Any>(Screens.Home) }
                 fun showNavBar(key: Screens?): Boolean {
                     return when (key) {
-                        Screens.HomeScreen, Screens.CoinScreen, Screens.CartScreen -> true
+                        Screens.Home, Screens.Coin, Screens.Cart -> true
                         else -> false
 
                     }

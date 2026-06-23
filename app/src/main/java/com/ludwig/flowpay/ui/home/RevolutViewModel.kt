@@ -35,7 +35,7 @@ class RevolutViewModel(
             is CardPaymentResult.Authorised -> {
                 logDebugLogs(TAG, "CardPaymentResult.Authorised", result.toString())
                 val outcome = PaymentFlowHelper.mapPaymentErrorToReasons(result.toString())
-                _paymentResult.value = NetworkResult.Success("Payment successful")
+                _paymentResult.value = NetworkResult.Success("Payment completed successfully")
             }
 
             is CardPaymentResult.Declined -> {

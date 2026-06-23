@@ -18,9 +18,9 @@ data class BottomNavItem(
 )
 
 val bottomNavItems = listOf(
-    BottomNavItem(Screens.HomeScreen, "Home", Icons.Default.Home),
-    BottomNavItem(Screens.CoinScreen, "Coin", Icons.Default.Person),
-    BottomNavItem(Screens.CartScreen, "Cart", Icons.Default.Settings),
+    BottomNavItem(Screens.Home, "Home", Icons.Default.Home),
+    BottomNavItem(Screens.Coin, "Coin", Icons.Default.Person),
+    BottomNavItem(Screens.Cart, "Cart", Icons.Default.Settings),
 )
 
 @Composable
