@@ -5,6 +5,8 @@ plugins {
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
 
+    id("com.google.protobuf") version "0.10.0"
+
 }
 
 android {
@@ -102,4 +104,24 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
+
+    // DataStore
+    implementation("androidx.datastore:datastore:1.1.1")
+//    implementation("androidx.datastore:datastore-tink:1.1.1")
+    implementation("com.google.protobuf:protobuf-kotlin-lite:4.28.2")
+
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.28.2"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") { option("lite") }
+                create("kotlin")
+            }
+        }
+    }
 }

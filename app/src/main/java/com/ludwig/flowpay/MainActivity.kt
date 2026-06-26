@@ -9,7 +9,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -31,11 +29,13 @@ import com.ludwig.flowpay.di.RevolutViewModelFactory
 import com.ludwig.flowpay.ui.coins.CoinViewModel
 import com.ludwig.flowpay.di.CoinViewModelFactory
 import com.ludwig.flowpay.di.HomeViewModelFactory
+import com.ludwig.flowpay.di.ProfileViewModelFactory
 import com.ludwig.flowpay.ui.cart.CartViewModel
 import com.ludwig.flowpay.ui.home.HomeViewModel
 import com.ludwig.flowpay.ui.navigation.BottomNavBar
 import com.ludwig.flowpay.ui.navigation.FlowPayNavDisplay
 import com.ludwig.flowpay.ui.navigation.Screens
+import com.ludwig.flowpay.ui.profile.ProfileViewModel
 import com.ludwig.flowpay.ui.theme.FlowPayTheme
 import com.ludwig.flowpay.ui.transactionOutcome.TransactionOutcomeViewModel
 import com.revolut.cardpayments.api.CardPaymentLauncher
@@ -62,6 +62,12 @@ class MainActivity : ComponentActivity() {
         HomeViewModelFactory(appDependencies.networkConnectivityObserver)
     }
     private val homeViewModel by viewModels<HomeViewModel>{ homeViewModelFactory }
+
+
+    private val profileViewModelFactory by lazy {
+        ProfileViewModelFactory(appDependencies.userProfileRepository)
+    }
+    private val profileViewModel by viewModels<ProfileViewModel> { profileViewModelFactory }
 
 
     private val cartViewModel by viewModels<CartViewModel>()

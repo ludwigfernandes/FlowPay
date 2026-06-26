@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_package = "com.ludwig.flowpay";
+option java_multiple_files = true;
+
+message UserProfile {
+  string name = 1;
+
+  string email = 2;
+
+  string streetLine1 = 3;
+  string streetLine2 = 4;
+  string city = 5;
+  string region = 6;
+  string country = 7;
+  string postcode = 8;
+}
