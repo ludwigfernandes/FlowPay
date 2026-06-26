@@ -11,6 +11,8 @@ import com.ludwig.flowpay.ui.coins.CoinScreen
 import com.ludwig.flowpay.ui.coins.CoinViewModel
 import com.ludwig.flowpay.ui.home.HomeScreen
 import com.ludwig.flowpay.ui.home.RevolutViewModel
+import com.ludwig.flowpay.ui.profile.ProfileScreen
+import com.ludwig.flowpay.ui.profile.ProfileViewModel
 import com.ludwig.flowpay.ui.transactionOutcome.TransactionOutcomeScreen
 import com.revolut.cardpayments.api.CardPaymentLauncher
 
@@ -21,6 +23,7 @@ fun FlowPayNavDisplay(
     revolutViewModel: RevolutViewModel,
     coinViewModel: CoinViewModel,
     cartViewModel: CartViewModel,
+    profileViewModel: ProfileViewModel,
     revCardPaymentLauncher: CardPaymentLauncher
 ) {
     fun navToScreen(key: Screens) {
@@ -49,6 +52,7 @@ fun FlowPayNavDisplay(
                 CartScreen(
                     cartViewModel = cartViewModel,
                     revolutViewModel = revolutViewModel,
+                    profileViewModel = profileViewModel,
                     revCardPaymentLauncher = revCardPaymentLauncher,
                     navToScreen = ::navToScreen
                 )
@@ -56,6 +60,12 @@ fun FlowPayNavDisplay(
             entry<Screens.TransactionOutcome> { key ->
                 TransactionOutcomeScreen(
                     paymentOutcome = key.paymentOutcome
+                )
+            }
+            entry<Screens.Profile> {
+                ProfileScreen(
+                    profileViewModel = profileViewModel,
+                    navToScreen = ::navToScreen
                 )
             }
         }

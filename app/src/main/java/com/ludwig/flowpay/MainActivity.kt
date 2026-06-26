@@ -141,6 +141,7 @@ class MainActivity : ComponentActivity() {
                             revolutViewModel = revolutViewModel,
                             coinViewModel = coinViewModel,
                             cartViewModel = cartViewModel,
+                            profileViewModel = profileViewModel,
                             revCardPaymentLauncher = revCardPaymentLauncher
                         )
                     }

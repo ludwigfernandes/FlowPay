@@ -1,5 +1,6 @@
 package com.ludwig.flowpay.ui.cart
 
+import android.R.attr.country
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,10 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
@@ -60,16 +63,19 @@ import com.ludwig.flowpay.data.model.OrderDetailsResponse
 import com.ludwig.flowpay.data.model.PaymentOutcome
 import com.ludwig.flowpay.ui.home.RevolutViewModel
 import com.ludwig.flowpay.ui.navigation.Screens
+import com.ludwig.flowpay.ui.profile.ProfileViewModel
 import com.ludwig.flowpay.utils.FieldFormating.toCleanString
 import com.ludwig.flowpay.utils.NetworkResult
 import com.revolut.cardpayments.api.CardPaymentLauncher
 import com.revolut.cardpayments.api.CardPaymentParams
+import com.revolut.cardpayments.core.api.AddressParams
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     cartViewModel: CartViewModel,
     revolutViewModel: RevolutViewModel,
+    profileViewModel: ProfileViewModel,
     revCardPaymentLauncher: CardPaymentLauncher,
     navToScreen: (Screens) -> Unit
 ) {
@@ -82,6 +88,21 @@ fun CartScreen(
     }
 
 
+    val profileDetailsData by profileViewModel.profileDetails.collectAsStateWithLifecycle()
+    val billingAddress = if (profileDetailsData.country.isNotEmpty()) {
+        AddressParams(
+            streetLine1 = profileDetailsData.streetLine1.takeIf { it.isNotBlank() },
+            streetLine2 = profileDetailsData.streetLine2.takeIf { it.isNotBlank() },
+            city = profileDetailsData.city.takeIf { it.isNotBlank() },
+            region = profileDetailsData.region.takeIf { it.isNotBlank() },
+            country = profileDetailsData.country,
+            postcode = profileDetailsData.postcode.takeIf { it.isNotBlank() },
+        )
+    } else {
+        null
+    }
+
+
     val orderDetailsState by revolutViewModel.orderDetails.collectAsStateWithLifecycle()
     val orderDetailsData = (orderDetailsState as? NetworkResult.Success<OrderDetailsResponse>)?.data
     val orderDetailsError = (orderDetailsState as? NetworkResult.Error)?.message
@@ -91,8 +112,8 @@ fun CartScreen(
             revCardPaymentLauncher.launch(
                 CardPaymentParams(
                     orderId = token,
-                    email = null,
-                    billingAddress = null,
+                    email = profileDetailsData.email.takeIf { it.isNotBlank() },
+                    billingAddress = billingAddress,
                     shippingAddress = null,
                     savePaymentMethodFor = null
                 )
@@ -154,6 +175,28 @@ fun CartScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "Your Cart",
+                        fontSize = 20.sp,
+                    )
+                    IconButton(
+                        onClick = { navToScreen(Screens.Profile) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Open profile",
+                        )
+                    }
+                }
+            }
             items(
                 items = cartItemsData, key = { it.id }
             ) { coin ->

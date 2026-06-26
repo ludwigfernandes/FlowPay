@@ -7,4 +7,5 @@ sealed interface Screens {
     data object Home: Screens
     data object Cart: Screens
     data class TransactionOutcome(val paymentOutcome: PaymentOutcome): Screens
+    data object Profile: Screens
 }
