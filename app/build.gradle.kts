@@ -106,15 +106,16 @@ dependencies {
     testImplementation("androidx.arch.core:core-testing:2.2.0")
 
     // DataStore
-    implementation("androidx.datastore:datastore:1.1.1")
+    implementation("androidx.datastore:datastore:1.2.1")
 //    implementation("androidx.datastore:datastore-tink:1.1.1")
-    implementation("com.google.protobuf:protobuf-kotlin-lite:4.28.2")
+    implementation("com.google.crypto.tink:tink-android:1.20.0")
+    implementation("com.google.protobuf:protobuf-kotlin-lite:4.35.1")
 
 }
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.28.2"
+        artifact = "com.google.protobuf:protoc:4.35.1"
     }
     generateProtoTasks {
         all().forEach { task ->

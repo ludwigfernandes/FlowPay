@@ -2,7 +2,6 @@ package com.ludwig.flowpay
 
 import android.app.Application
 import com.ludwig.flowpay.di.AppDependencies
-import com.revolut.payments.RevolutPaymentsSDK
 
 class FlowPayApplication: Application() {
 
@@ -13,12 +12,5 @@ class FlowPayApplication: Application() {
 
         appDependencies = AppDependencies(applicationContext)
 
-
-        RevolutPaymentsSDK.configure(
-            configuration = RevolutPaymentsSDK.Configuration(
-                merchantPublicKey = BuildConfig.REVOLUT_PUBLIC_KEY,
-                environment = RevolutPaymentsSDK.Environment.SANDBOX
-            )
-        )
     }
 }
